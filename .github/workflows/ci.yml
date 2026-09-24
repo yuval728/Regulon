@@ -60,11 +60,11 @@ jobs:
           context: .
           file: deploy/Dockerfile
           push: false
-          tags: gxp-llm:latest
+          tags: regulon:latest
           load: true
       - name: Test image runs
         run: |
-          docker run --rm --entrypoint python gxp-llm:latest -c "import serve.api; print('Import OK')"
+          docker run --rm --entrypoint python regulon:latest -c "import serve.api; print('Import OK')"
 
   deploy-modal:
     name: Deploy to Modal (Demo)

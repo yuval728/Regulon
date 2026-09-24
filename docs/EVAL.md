@@ -39,10 +39,12 @@ The `eval/` package is a **reusable, model-agnostic evaluation framework** built
 ```python
 from eval.llm_judge import LLMJudge, DEFAULT_RUBRIC
 
-judge = LLMJudge(model="gemini/gemini-2.5-flash", rubric=DEFAULT_RUBRIC)
+judge = LLMJudge(model="gemini/gemini-3.5-flash-lite", rubric=DEFAULT_RUBRIC)
 scores = judge.score(user_msg, assistant_msg, reference_msg)
 # Returns: {"accuracy": 4, "completeness": 5, "compliance": 5, "tone": 4}
 ```
+
+Default judge everywhere (`eval/run.py`, `eval/llm_judge.py`, all Kaggle notebooks): `gemini/gemini-3.5-flash-lite` (provider-qualified LiteLLM name; `groq/...` / `nvidia_nim/...` also supported).
 
 **Batch evaluation** (`evaluate_with_judge`): Aggregates by category × adversarial flag.
 
@@ -71,8 +73,12 @@ results = run_full_eval(
     model_path="unsloth/Qwen3.5-4B",   # or ./merged_16bit, ./gptq-4bit, etc.
     adapter_path="./lora_adapter",     # optional LoRA
     data_dir="data",
-    judge_model="gemini/gemini-2.5-flash",
-    output_dir="eval_results"
+    judge_model="gemini/gemini-3.5-flash-lite",
+    output_dir="eval_results",
+    load_in_4bit=True,                 # False for GPTQ/AWQ checkpoints
+    batch_size=4,
+    max_new_tokens=512,
+    judge_concurrency=2,
 )
 ```
 
@@ -124,7 +130,11 @@ python -m eval.run --model ./quantized/gptq-4bit --data-dir data --output-dir ev
 ```
 
 ### Kaggle Notebook (`kaggle/eval.ipynb`)
-Self-contained: installs deps, loads model from Kaggle dataset, runs harness, logs to W&B.
+Self-contained: installs deps, loads model from the attached `regulon-source` / `regulon-data` datasets, runs harness, logs to W&B project `regulon`.
+Change only these per run: `STAGE` (`baseline` | `finetuned` | `gptq_4bit` | `awq_4bit`), `MODEL_PATH` (default `unsloth/Qwen3.5-4B`), `ADAPTER_PATH`, `LOAD_IN_4BIT` (set `False` for GPTQ/AWQ), `JUDGE_MODEL` (default `gemini/gemini-3.5-flash-lite` or `None`), `EVAL_BATCH_SIZE=4`, `MAX_NEW_TOKENS=512`, `JUDGE_CONCURRENCY=2`. Outputs to `/kaggle/working/regulon_eval_{STAGE}`.
+
+### Results dashboard (`kaggle/results_dashboard.ipynb`)
+Scans all attached `full_results.json` files under `/kaggle/input`, builds a comparable table (`artifact`, `split`, `exact_match`, `rougeL_f1`, `bleu`, `judge_mean`, `refusal_rate`, `false_compliance_rate`, `helpful_redirect_rate`), writes `regulon_results_dashboard/results_comparison.csv` + `.json` + `rougeL_comparison.png`, and optionally publishes a W&B `results-dashboard` run + `regulon-results-dashboard` artifact in project `regulon`.
 
 ## W&B Logging
 

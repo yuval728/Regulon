@@ -1,5 +1,5 @@
 [project]
-name = "gxp-llm"
+name = "regulon"
 version = "0.1.0"
 description = "Fine-tuned LLM for GxP pharmaceutical compliance: synthetic data, evaluation, QLoRA fine-tuning, quantization, serving, and deployment"
 readme = "README.md"
@@ -11,8 +11,7 @@ dependencies = [
     "peft==0.13.2",
     "bitsandbytes==0.45.0",
     "accelerate==0.34.2",
-    "auto-gptq==0.7.1",
-    "autoawq==0.2.7",
+    "gptqmodel",
     "llm-compressor==1.2.0",
     "vllm==0.6.3",
     "sglang==0.3.8",

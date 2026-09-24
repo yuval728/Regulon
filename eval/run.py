@@ -115,7 +115,7 @@ def run_split(
     tokenizer,
     split_data: List[Dict],
     split_name: str,
-    judge_model: Optional[str] = "gemini/gemini-2.5-flash",
+    judge_model: Optional[str] = "gemini/gemini-3.5-flash-lite",
     batch_size: int = 4,
     max_new_tokens: int = 512,
     judge_concurrency: int = 2,
@@ -217,7 +217,7 @@ def run_full_eval(
     model_path: str,
     adapter_path: Optional[str] = None,
     data_dir: str = "data",
-    judge_model: Optional[str] = "gemini/gemini-2.5-flash",
+    judge_model: Optional[str] = "gemini/gemini-3.5-flash-lite",
     output_dir: str = "eval_results",
     load_in_4bit: bool = True,
     batch_size: int = 4,
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", default="data")
     parser.add_argument(
         "--judge-model",
-        default="gemini/gemini-2.5-flash",
+        default="gemini/gemini-3.5-flash-lite",
         help="LiteLLM model name; use 'none' to skip API judging",
     )
     parser.add_argument("--batch-size", type=int, default=4)

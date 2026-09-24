@@ -250,13 +250,13 @@
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["gxp-llm", "serving"],
+  "tags": ["regulon", "serving"],
   "templating": {"list": []},
   "time": {"from": "now-1h", "to": "now"},
   "timepicker": {},
   "timezone": "",
-  "title": "GxP-LLM Serving Dashboard",
-  "uid": "gxp-llm-serving",
+  "title": "Regulon Serving Dashboard",
+  "uid": "regulon-serving",
   "version": 1,
   "weekStart": ""
 }

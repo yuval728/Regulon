@@ -53,7 +53,7 @@ CMD ["python", "-m", "serve.api"]
 
 ### Build
 ```bash
-docker build -f deploy/Dockerfile -t gxp-llm:latest .
+docker build -f deploy/Dockerfile -t regulon:latest .
 ```
 
 ### Run (Single Engine)
@@ -63,14 +63,14 @@ docker run --gpus all -p 8000:8000 \
   -e ENGINE_TYPE=vllm \
   -e MODEL_PATH=/model \
   -v $(pwd)/quantized/awq-4bit:/model:ro \
-  gxp-llm:latest
+  regulon:latest
 
 # SGLang with merged model
 docker run --gpus all -p 8001:8000 \
   -e ENGINE_TYPE=sglang \
   -e MODEL_PATH=/model \
   -v $(pwd)/merged_16bit:/model:ro \
-  gxp-llm:latest
+  regulon:latest
 ```
 
 ## Docker Compose (`deploy/docker-compose.yml`)
@@ -174,14 +174,14 @@ datasources:
 ### Dashboard Provisioning (`dashboards/dashboards.yml`)
 ```yaml
 providers:
-  - name: 'GxP-LLM Dashboards'
-    folder: 'GxP-LLM'
+  - name: 'Regulon Dashboards'
+    folder: 'Regulon'
     type: file
     options:
       path: /etc/grafana/provisioning/dashboards
 ```
 
-### Pre-built Dashboard (`dashboards/gxp-llm-serving.json`)
+### Pre-built Dashboard (`dashboards/regulon-serving.json`)
 
 | Panel | Metrics |
 |-------|---------|
@@ -219,7 +219,7 @@ pip install modal
 modal token new
 
 # 3. Create volume
-modal volume create gxp-model
+modal volume create regulon-model
 
 # 4. Upload model
 modal run serve/modal_deploy.py::upload_model --local-path ./merged_16bit
@@ -228,8 +228,8 @@ modal run serve/modal_deploy.py::upload_model --local-path ./merged_16bit
 modal deploy serve/modal_deploy.py
 
 # 6. Get URLs
-# vLLM: https://your-name--gxp-llm-demo-vllm-app.modal.run
-# SGLang: https://your-name--gxp-llm-demo-sglang-app.modal.run
+# vLLM: https://your-name--regulon-demo-vllm-app.modal.run
+# SGLang: https://your-name--regulon-demo-sglang-app.modal.run
 ```
 
 ### Modal Benefits
@@ -266,17 +266,17 @@ modal deploy serve/modal_deploy.py
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gxp-llm-vllm
+  name: regulon-vllm
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gxp-llm-vllm
+      app: regulon-vllm
   template:
     spec:
       containers:
       - name: vllm
-        image: gxp-llm:latest
+        image: regulon:latest
         env:
         - name: ENGINE_TYPE
           value: "vllm"
@@ -291,15 +291,15 @@ spec:
       volumes:
       - name: model
         persistentVolumeClaim:
-          claimName: gxp-model-pvc
+          claimName: regulon-model-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: gxp-llm-vllm
+  name: regulon-vllm
 spec:
   selector:
-    app: gxp-llm-vllm
+    app: regulon-vllm
   ports:
   - port: 8000
     targetPort: 8000
@@ -310,12 +310,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: gxp-llm-vllm-hpa
+  name: regulon-vllm-hpa
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: gxp-llm-vllm
+    name: regulon-vllm
   minReplicas: 1
   maxReplicas: 10
   metrics:

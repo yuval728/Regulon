@@ -42,7 +42,7 @@ async def benchmark_engine(
         async with semaphore:
             headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
             payload = {
-                "model": "gxp-llm",
+                "model": "regulon",
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": max_tokens,
                 "temperature": 0.1,

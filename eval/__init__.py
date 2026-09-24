@@ -1,4 +1,4 @@
-"""GxP-LLM Evaluation Harness"""
+"""Regulon Evaluation Harness"""
 from .metrics import exact_match, rouge_l, bleu_score
 from .llm_judge import LLMJudge
 from .adversarial import evaluate_adversarial

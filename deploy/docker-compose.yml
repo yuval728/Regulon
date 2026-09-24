@@ -6,7 +6,7 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    container_name: gxp-vllm
+    container_name: regulon-vllm
     environment:
       - ENGINE_TYPE=vllm
       - MODEL_PATH=/model
@@ -33,7 +33,7 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    container_name: gxp-sglang
+    container_name: regulon-sglang
     environment:
       - ENGINE_TYPE=sglang
       - MODEL_PATH=/model
@@ -58,7 +58,7 @@ services:
   # Prometheus for metrics
   prometheus:
     image: prom/prometheus:v2.54.0
-    container_name: gxp-prometheus
+    container_name: regulon-prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -71,7 +71,7 @@ services:
   # Grafana for dashboards
   grafana:
     image: grafana/grafana:11.0.0
-    container_name: gxp-grafana
+    container_name: regulon-grafana
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
@@ -88,7 +88,7 @@ services:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    container_name: gxp-locust
+    container_name: regulon-locust
     working_dir: /app/load_test
     command: locust -f locustfile.py --host=http://vllm:8000 --web-host=0.0.0.0 --web-port=8089
     ports:

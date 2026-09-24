@@ -1,7 +1,7 @@
 """Modal deployment for live demo endpoint."""
 import modal
 
-app = modal.App("gxp-llm-demo")
+app = modal.App("regulon-demo")
 
 # Base image with dependencies
 image = modal.Image.debian_slim(python_version="3.11").pip_install(
@@ -14,7 +14,7 @@ image = modal.Image.debian_slim(python_version="3.11").pip_install(
 ).add_local_dir("serve", remote_path="/app/serve")
 
 # Model volume (populated from quantization step)
-model_volume = modal.Volume.from_name("gxp-model", create_if_missing=True)
+model_volume = modal.Volume.from_name("regulon-model", create_if_missing=True)
 
 @app.function(
     image=image,

@@ -2,7 +2,7 @@
 
 The model name is intentionally provider-qualified so the harness can use a
 free-tier Gemini, Groq, or NVIDIA NIM endpoint without code changes.  Examples
-include ``gemini/gemini-2.5-flash``, ``groq/openai/gpt-oss-20b`` and
+include ``gemini/gemini-3.5-flash-lite``, ``groq/openai/gpt-oss-20b`` and
 ``nvidia_nim/<catalog-model>``.  LiteLLM reads the corresponding API key from
 the environment.
 """
@@ -41,7 +41,7 @@ DEFAULT_RUBRIC = JudgeRubric(
 
 
 class LLMJudge:
-    def __init__(self, model: str = "gemini/gemini-2.5-flash", rubric: Optional[JudgeRubric] = None):
+    def __init__(self, model: str = "gemini/gemini-3.5-flash-lite", rubric: Optional[JudgeRubric] = None):
         self.model = model
         self.rubric = rubric or DEFAULT_RUBRIC
 

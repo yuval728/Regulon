@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for GxP-LLM serving
+# Multi-stage Dockerfile for Regulon serving
 # Build stage
 FROM python:3.11-slim as builder
 

@@ -1,7 +1,7 @@
 """FP8 Quantization via llm-compressor (run on Modal H100)."""
 import modal
 
-app = modal.App("gxp-fp8-quantize")
+app = modal.App("regulon-fp8-quantize")
 
 image = modal.Image.debian_slim(python_version="3.11").pip_install(
     "torch==2.5.1",
@@ -11,10 +11,10 @@ image = modal.Image.debian_slim(python_version="3.11").pip_install(
     "huggingface_hub==0.25.0",
 )
 
-MODEL_ID = "Qwen/Qwen2.5-7B"  # or your fine-tuned model path
+MODEL_ID = "unsloth/Qwen3.5-4B"  # or your fine-tuned model path
 OUTPUT_DIR = "/results/fp8"
 
-@app.function(image=image, gpu="H100", timeout=3600, volumes={"/results": modal.Volume.from_name("gxp-results", create_if_missing=True)})
+@app.function(image=image, gpu="H100", timeout=3600, volumes={"/results": modal.Volume.from_name("regulon-results", create_if_missing=True)})
 def quantize_fp8():
     from llmcompressor import oneshot
     from llmcompressor.modifiers.quantization import QuantizationModifier
@@ -45,8 +45,8 @@ def quantize_fp8():
         api = HfApi(token=hf_token)
         api.upload_folder(
             folder_path=OUTPUT_DIR,
-            repo_id="your-username/qwen2.5-7b-gxp-fp8",
-            commit_message="FP8 quantized GxP model",
+            repo_id="your-username/qwen3.5-4b-regulon-fp8",
+            commit_message="FP8 quantized Regulon model",
         )
         print("Uploaded to HF Hub")
 

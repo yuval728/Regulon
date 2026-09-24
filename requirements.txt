@@ -9,9 +9,8 @@ accelerate==0.34.2
 # Unsloth (install from GitHub for latest)
 # pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 
-# Quantization
-auto-gptq==0.7.1
-autoawq==0.2.7
+# Quantization (matches kaggle/quantize.ipynb: gptqmodel for GPTQ, llm-compressor for AWQ/FP8)
+gptqmodel
 llm-compressor==1.2.0
 
 # Serving

@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: 'GxP-LLM Dashboards'
+  - name: 'Regulon Dashboards'
     orgId: 1
-    folder: 'GxP-LLM'
+    folder: 'Regulon'
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10

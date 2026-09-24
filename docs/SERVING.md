@@ -39,7 +39,7 @@ Both serve the **same model artifacts** (quantized or merged) — no duplicate q
 ```json
 POST /v1/chat/completions
 {
-  "model": "gxp-llm",
+  "model": "regulon",
   "messages": [
     {"role": "system", "content": "..."},
     {"role": "user", "content": "Write a deviation report..."}
@@ -58,7 +58,7 @@ POST /v1/chat/completions
   "id": "chatcmpl-abc123",
   "object": "chat.completion",
   "created": 1699999999,
-  "model": "gxp-llm",
+  "model": "regulon",
   "choices": [{
     "index": 0,
     "message": {"role": "assistant", "content": "**Deviation Report...**"},
@@ -219,14 +219,14 @@ sglang     10           0.189s      0.312s      0.044s     7800 tok/s  100%
 ### Docker (Single Engine)
 ```bash
 # Build
-docker build -f deploy/Dockerfile -t gxp-llm .
+docker build -f deploy/Dockerfile -t regulon .
 
 # Run vLLM
 docker run --gpus all -p 8000:8000 \
   -e ENGINE_TYPE=vllm \
   -e MODEL_PATH=/model \
   -v $(pwd)/quantized/awq-4bit:/model:ro \
-  gxp-llm
+  regulon
 ```
 
 ### Docker Compose (Full Stack)
@@ -251,8 +251,8 @@ modal deploy serve/modal_deploy.py
 modal run serve/modal_deploy.py::upload_model --local-path ./merged_16bit
 
 # Endpoints:
-# - https://your-name--gxp-llm-demo-vllm-app.modal.run/v1/chat/completions
-# - https://your-name--gxp-llm-demo-sglang-app.modal.run/v1/chat/completions
+# - https://your-name--regulon-demo-vllm-app.modal.run/v1/chat/completions
+# - https://your-name--regulon-demo-sglang-app.modal.run/v1/chat/completions
 ```
 
 ## Monitoring (Prometheus + Grafana)
@@ -264,7 +264,7 @@ modal run serve/modal_deploy.py::upload_model --local-path ./merged_16bit
 - `process_cpu_seconds_total`, `process_resident_memory_bytes` — System
 
 ### Grafana Dashboard
-Pre-built at `deploy/grafana/dashboards/gxp-llm-serving.json`:
+Pre-built at `deploy/grafana/dashboards/regulon-serving.json`:
 - CPU/Memory usage
 - Request latency (p50/p95/p99)
 - Requests per second

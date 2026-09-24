@@ -1,4 +1,4 @@
-# GxP-LLM: Fine-Tuned LLM for Pharmaceutical Compliance
+# Regulon: Fine-Tuned LLM for Pharmaceutical Compliance
 
 A production-grade LLM fine-tuning project covering the full lifecycle: synthetic data generation → evaluation → fine-tuning (QLoRA + Unsloth) → quantization (GPTQ/AWQ/FP8) → serving (vLLM + SGLang) → load testing → deployment.
 
@@ -85,7 +85,7 @@ A production-grade LLM fine-tuning project covering the full lifecycle: syntheti
 ## 📁 Project Structure
 
 ```
-GxP-LLM/
+Regulon/
 ├── data/                          # Synthetic datasets (150 examples)
 │   ├── train.jsonl                # 95 training examples
 │   ├── eval.jsonl                 # 16 eval examples
@@ -97,9 +97,10 @@ GxP-LLM/
 │   ├── adversarial.py             # Refusal/false compliance/helpful redirect
 │   └── run.py                     # Full evaluation orchestrator
 ├── kaggle/                        # Kaggle notebooks (self-contained)
-│   ├── train.ipynb                # Fine-tuning with Unsloth + TRL
-│   ├── eval.ipynb                 # Evaluation on Kaggle
-│   └── quantize.ipynb             # GPTQ + AWQ quantization
+│   ├── train.ipynb                # Fine-tuning with Unsloth + TRL (QLoRA r=16, 300 steps)
+│   ├── eval.ipynb                 # Stage evaluation (baseline / finetuned / GPTQ / AWQ)
+│   ├── quantize.ipynb             # GPTQ (gptqmodel) + AWQ (llm-compressor) + identical eval
+│   └── results_dashboard.ipynb    # Portable results table/CSV/plots + optional W&B publish
 ├── quantize/                      # Quantization scripts
 │   └── fp8_quantize.py            # FP8 via llm-compressor (Modal H100)
 ├── serve/                         # Serving stack
@@ -135,7 +136,7 @@ python -m eval.run --model unsloth/Qwen3.5-4B --data-dir data --output-dir eval_
 ```
 
 ### 3. Fine-Tune on Kaggle
-1. Upload this repository as versioned Kaggle dataset `gxp-source` and upload `data/` as `gxp-data`
+1. Upload this repository as versioned Kaggle dataset `regulon-source` and upload `data/` as `regulon-data`
 2. Attach both inputs, enable Internet and a GPU, then run `kaggle/eval.ipynb` for each baseline
 3. Run `kaggle/train.ipynb`; attach its saved notebook output to `kaggle/quantize.ipynb`
 4. Add `WANDB_API_KEY` and one judge-provider secret (`GEMINI_API_KEY`, `GROQ_API_KEY`, or `NVIDIA_API_KEY`) to Kaggle Secrets
@@ -232,10 +233,12 @@ This project produces:
 ## 🔧 Configuration
 
 Key configs in `kaggle/train.ipynb`:
-- Model: `unsloth/Qwen3.5-4B` (change after baseline comparison)
+- Model: `unsloth/Qwen3.5-4B`
 - QLoRA: 4-bit NF4, rank 16, alpha 16
 - Target modules: all attention + MLP projections
-- Training: 300 steps, batch 2, grad accum 4, lr 2e-4
+- Training: 300 steps, batch 4, grad accum 4, lr 2e-4, max_seq_length 2048
+- Judge: `gemini/gemini-3.5-flash-lite` (via LiteLLM)
+- Outputs: `regulon_train/merged_16bit` + `regulon_train/lora_adapter` + `regulon_train/eval_finetuned`
 
 ---
 

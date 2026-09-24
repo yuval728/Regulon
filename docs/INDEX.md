@@ -1,4 +1,4 @@
-# GxP-LLM Documentation Index
+# Regulon Documentation Index
 
 ## Project Documentation
 
@@ -13,8 +13,8 @@
 |----------|-----------|------------|
 | [`DATA.md`](DATA.md) | `data/` | Schema, categories (sop/deviation/capa/audit_qa), adversarial types, pipeline |
 | [`EVAL.md`](EVAL.md) | `eval/` | Metrics (exact match, ROUGE, BLEU), LLM judge rubric, adversarial classification, orchestrator |
-| [`TRAINING.md`](TRAINING.md) | `kaggle/train.ipynb` | Unsloth+TRL QLoRA, LoRA config, ablations (r=8/16/32), Unsloth vs vanilla, W&B logging |
-| [`QUANTIZATION.md`](QUANTIZATION.md) | `kaggle/quantize.ipynb`, `quantize/fp8_quantize.py` | GPTQ, AWQ, FP8, calibration, evaluation protocol, comparison metrics |
+| [`TRAINING.md`](TRAINING.md) | `kaggle/train.ipynb` | Unsloth+TRL QLoRA (Qwen3.5-4B, r=16, 300 steps), ablations (r=8/16/32), Unsloth vs vanilla, W&B logging |
+| [`QUANTIZATION.md`](QUANTIZATION.md) | `kaggle/quantize.ipynb`, `quantize/fp8_quantize.py` | GPTQ via gptqmodel, AWQ via llm-compressor (Qwen3.5 mapping fix), FP8, calibration, evaluation protocol, comparison metrics |
 | [`SERVING.md`](SERVING.md) | `serve/` | vLLM, SGLang, FastAPI wrapper, OpenAI-compatible API, streaming, benchmarking |
 | [`DEPLOYMENT.md`](DEPLOYMENT.md) | `deploy/` | Dockerfile, docker-compose, Prometheus, Grafana, Modal, Kubernetes, CI/CD |
 | [`LOAD_TESTING.md`](LOAD_TESTING.md) | `load_test/locustfile.py` | Ramp profile, GxP prompts, metrics (TTFT, ITL, throughput), vLLM vs SGLang comparison |
@@ -46,7 +46,9 @@
 | `eval/adversarial.py` | [`EVAL.md`](EVAL.md) → "adversarial.py" |
 | `eval/run.py` | [`EVAL.md`](EVAL.md) → "run.py" |
 | `kaggle/train.ipynb` | [`TRAINING.md`](TRAINING.md) |
+| `kaggle/eval.ipynb` | [`EVAL.md`](EVAL.md) → "Kaggle Notebook" |
 | `kaggle/quantize.ipynb` | [`QUANTIZATION.md`](QUANTIZATION.md) |
+| `kaggle/results_dashboard.ipynb` | [`EVAL.md`](EVAL.md) → "Results dashboard" |
 | `quantize/fp8_quantize.py` | [`QUANTIZATION.md`](QUANTIZATION.md) → "FP8" |
 | `serve/api.py` | [`SERVING.md`](SERVING.md) → "FastAPI Wrapper" |
 | `serve/vllm_server.py` | [`SERVING.md`](SERVING.md) → "vLLM Engine" |
@@ -77,7 +79,7 @@
 | Resource | URL |
 |----------|-----|
 | Unsloth Documentation | https://unsloth.ai/docs |
-| Qwen2.5 Models | https://huggingface.co/Qwen |
+| Qwen3.5 Models | https://huggingface.co/Qwen |
 | vLLM Documentation | https://docs.vllm.ai |
 | SGLang Documentation | https://github.com/sgl-project/sglang |
 | Modal Documentation | https://modal.com/docs |

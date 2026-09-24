@@ -1,6 +1,6 @@
-# GxP-LLM Fine-Tuning Project — Implementation Plan
+# Regulon Fine-Tuning Project — Implementation Plan
 
-**Target Model:** Qwen2.5-7B (Qwen 3.x not yet released — Qwen2.5 is current latest)
+**Target Model:** `unsloth/Qwen3.5-4B` (QLoRA 4-bit NF4, r=16, 300 steps)
 **Compute:** Kaggle (training, ~30 hrs/week T4/P100) → Modal free tier (FP8 quant, serving demo) → Lightning AI (persistent demo)
 **Tracking:** Weights & Biases (W&B)
 **Timeline:** 6 weeks part-time (~10-15 hrs/week)
@@ -12,8 +12,8 @@
 | Task | Details |
 |------|---------|
 | **Pin dependencies** | `requirements.txt` with: `torch==2.5.1`, `transformers==4.46.3`, `trl==0.15.2`, `peft==0.13.2`, `bitsandbytes==0.45.0`, `unsloth[colab-new]`, `vllm==0.6.3`, `sglang==0.3.8`, `sentence-transformers`, `wandb`, `fastapi`, `uvicorn`, `locust`, `prometheus-client` |
-| **Verify Unsloth support** | Check `unsloth.ai` docs / HF model cards for Qwen2.5-7B support |
-| **Kaggle notebooks** | `kaggle/train.ipynb`, `kaggle/eval.ipynb`, `kaggle/quantize.ipynb` — self-contained with dependency installs |
+| **Verify Unsloth support** | `unsloth/Qwen3.5-4B` (used by `kaggle/train.ipynb`) |
+| **Kaggle notebooks** | `kaggle/train.ipynb`, `kaggle/eval.ipynb`, `kaggle/quantize.ipynb`, `kaggle/results_dashboard.ipynb` — self-contained with dependency installs |
 | **W&B setup** | `wandb.login()` in train notebook; log config, loss, VRAM, wall-clock, eval metrics per checkpoint |
 | **Python version** | Kaggle uses 3.11 — notebooks should specify or use micromamba |
 
@@ -31,7 +31,7 @@
 | `eval/run.py` | Orchestrates: loads model, runs all splits, outputs JSON + markdown table |
 
 ### Baseline Run (Day 5)
-- Load un-fine-tuned Qwen2.5-7B (4-bit NF4 via bitsandbytes)
+- Load un-fine-tuned Qwen3.5-4B (4-bit NF4 via bitsandbytes)
 - Run full harness on `eval.jsonl` + `adversarial_holdout.jsonl`
 - Log to W&B — control group for all later comparisons
 
@@ -46,7 +46,7 @@ from unsloth import FastLanguageModel
 from trl import SFTTrainer, SFTConfig
 
 model, tokenizer = FastLanguageModel.from_pretrained(
-    "unsloth/Qwen2.5-7B",
+    "unsloth/Qwen3.5-4B",
     max_seq_length=2048,
     dtype=None,
     load_in_4bit=True,
@@ -64,7 +64,7 @@ trainer = SFTTrainer(
     eval_dataset=eval_dataset,
     args=SFTConfig(
         output_dir="./output",
-        per_device_train_batch_size=2,
+        per_device_train_batch_size=4,
         gradient_accumulation_steps=4,
         max_steps=300,
         learning_rate=2e-4,
@@ -72,7 +72,8 @@ trainer = SFTTrainer(
         eval_steps=50,
         save_steps=50,
         report_to="wandb",
-        bf16=True,
+        fp16=True,
+        bf16=False,
     ),
 )
 ```
@@ -98,8 +99,8 @@ trainer = SFTTrainer(
 
 | Method | Tool | Target |
 |--------|------|--------|
-| **GPTQ** | `auto-gptq` | 4-bit, group_size=128 |
-| **AWQ** | `autoawq` | 4-bit, group_size=128 |
+| **GPTQ** | `gptqmodel` | 4-bit, group_size=128 |
+| **AWQ** | `llm-compressor` (AWQModifier + W4A16_ASYM; skip Qwen3.5 GatedDeltaNet mapping) | 4-bit |
 | **FP8** | `llm-compressor` | Modal H100 if free tier available |
 
 ### Evaluation
@@ -182,7 +183,7 @@ trainer = SFTTrainer(
 ## Repo Structure (to scaffold)
 
 ```
-GxP-LLM/
+Regulon/
 ├── data/
 │   ├── train.jsonl
 │   ├── eval.jsonl
@@ -198,7 +199,8 @@ GxP-LLM/
 ├── kaggle/
 │   ├── train.ipynb
 │   ├── eval.ipynb
-│   └── quantize.ipynb
+│   ├── quantize.ipynb
+│   └── results_dashboard.ipynb
 ├── quantize/
 │   ├── gptq_quantize.py
 │   ├── awq_quantize.py
@@ -227,6 +229,5 @@ GxP-LLM/
 
 ## Clarifications Needed
 
-1. **Model version**: Qwen 3.5/3.6/3.8 don't exist yet — Qwen2.5 is current latest. Confirm Qwen2.5-7B is acceptable, or specify exact HF model ID if different.
-2. **Modal free tier**: Confirm access for FP8 quantization benchmark on H100.
-3. **Python version**: Local is 3.13 but Kaggle uses 3.11 — requirements should be compatible with both.
+1. **Modal free tier**: Confirm access for FP8 quantization benchmark on H100.
+2. **Python version**: Local is 3.13 but Kaggle uses 3.11 — requirements should be compatible with both.

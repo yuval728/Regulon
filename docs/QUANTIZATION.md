@@ -1,13 +1,15 @@
 # Quantization Documentation
 
 ## Overview
-The `kaggle/quantize.ipynb` and `quantize/fp8_quantize.py` implement **post-training quantization** of the merged 16-bit fine-tuned model. Three methods:
+The `kaggle/quantize.ipynb` and `quantize/fp8_quantize.py` implement **post-training quantization** of the merged 16-bit fine-tuned model (`regulon_train/merged_16bit` from `regulon-train` notebook output). Three methods:
 
-| Method | Tool | Hardware | Use Case |
-|--------|------|----------|----------|
-| **GPTQ** | auto-gptq | Kaggle T4/P100 | General-purpose, mature |
-| **AWQ** | autoawq | Kaggle T4/P100 | Better accuracy at 4-bit |
-| **FP8** | llm-compressor | Modal H100 | Native FP8 on Hopper+ |
+| Method | Tool (matches notebook) | Hardware | Use Case |
+|--------|-------------------------|----------|----------|
+| **GPTQ** | `gptqmodel` (`GPTQModel`, `QuantizeConfig`) | Kaggle T4/P100 | General-purpose 4-bit |
+| **AWQ** | `llm-compressor` (`AWQModifier` + `QuantizationModifier` W4A16) | Kaggle T4/P100 | Better accuracy at 4-bit |
+| **FP8** | `llm-compressor` | Modal H100 | Native FP8 on Hopper+ |
+
+Installs (notebook cell 1): `transformers accelerate sentence-transformers rouge-score nltk litellm wandb peft bitsandbytes` + `llmcompressor` + `gptqmodel`. Judge: `gemini/gemini-3.5-flash-lite`. W&B project: `regulon`. Output: `/kaggle/working/regulon_quantization` (`gptq-4bit`, `awq-4bit`, `eval_gptq_4bit`, `eval_awq_4bit`).
 
 ## GPTQ (Generalized Post-Training Quantization)
 
@@ -16,27 +18,21 @@ The `kaggle/quantize.ipynb` and `quantize/fp8_quantize.py` implement **post-trai
 - Per-channel scaling with group-wise quantization (group_size=128)
 - `desc_act=False` (faster, slightly less accurate) or `True` (slower, better)
 
-### Code (`kaggle/quantize.ipynb`)
+### Code (`kaggle/quantize.ipynb` — `gptqmodel`)
 ```python
-from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
+from gptqmodel import GPTQModel, QuantizeConfig
+from transformers import AutoTokenizer
 
-quantize_config = BaseQuantizeConfig(
-    bits=4,
-    group_size=128,
-    desc_act=False,
-    sym=True,
-)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+tokenizer.pad_token = tokenizer.eos_token
+gptq_path = OUTPUT_DIR / 'gptq-4bit'
+quantize_config = QuantizeConfig(bits=4, group_size=128, desc_act=False, sym=True)
+gptq_model = GPTQModel.load(str(MODEL_PATH), quantize_config, device_map='auto', trust_remote_code=True)
 
-model = AutoGPTQForCausalLM.from_pretrained(
-    MODEL_PATH,
-    quantize_config=quantize_config,
-    device_map="auto",
-)
-
-# Calibration data (128 samples from train)
-calib_texts = [format_prompt(ex) for ex in train_data[:128]]
-model.quantize(calib_texts)
-model.save_quantized("./quantized/gptq-4bit")
+# Calibration data (128 samples from train.jsonl: system + user content)
+gptq_model.quantize(CALIBRATION_TEXTS)
+gptq_model.save_quantized(str(gptq_path))
+tokenizer.save_pretrained(str(gptq_path))
 ```
 
 ### Key Parameters
@@ -54,29 +50,39 @@ model.save_quantized("./quantized/gptq-4bit")
 - Uses calibration data to identify important weight channels
 - Generally better accuracy than GPTQ at same bit-width
 
-### Code (`kaggle/quantize.ipynb`)
+### Code (`kaggle/quantize.ipynb` — `llm-compressor` AWQ + W4A16)
 ```python
-from awq import AutoAWQForCausalLM
+from datasets import Dataset
+from transformers import AutoModelForCausalLM
+from llmcompressor import oneshot
+from llmcompressor.modifiers.transform.awq import AWQModifier, get_layer_mappings_from_model
+from llmcompressor.modifiers.quantization import QuantizationModifier
 
-quant_config = {
-    "zero_point": True,
-    "q_group_size": 128,
-    "w_bit": 4,
-    "version": "GEMM",
-}
+awq_path = OUTPUT_DIR / "awq-4bit"
+awq_model = AutoModelForCausalLM.from_pretrained(str(MODEL_PATH), torch_dtype="auto", device_map="auto", trust_remote_code=True)
+calib_dataset = Dataset.from_dict({"text": CALIBRATION_TEXTS})
 
-model = AutoAWQForCausalLM.from_pretrained(MODEL_PATH, device_map="auto")
-model.quantize(tokenizer, quant_config=quant_config, calib_data=calib_texts)
-model.save_quantized("./quantized/awq-4bit")
+# Qwen3.5 mappings: 0 = full attention, 1 = GatedDeltaNet/linear attention,
+# 2 = MLP gate/up, 3 = MLP up/down. Exclude mapping 1 (its calibration path
+# calls Qwen3_5GatedDeltaNet without hidden_states and fails).
+all_mappings = get_layer_mappings_from_model(awq_model)
+awq_mappings = [all_mappings[0], all_mappings[2], all_mappings[3]]
+
+recipe = [
+    AWQModifier(mappings=awq_mappings, duo_scaling="both"),
+    QuantizationModifier(scheme="W4A16_ASYM", targets=["Linear"], ignore=["lm_head", "re:.*linear_attn.*"]),
+]
+oneshot(model=awq_model, dataset=calib_dataset, recipe=recipe, output_dir=str(awq_path), max_seq_length=512, num_calibration_samples=len(CALIBRATION_TEXTS))
+tokenizer.save_pretrained(str(awq_path))
 ```
 
-### Key Parameters
+### Key Parameters (matches notebook)
 | Param | Value | Effect |
 |-------|-------|--------|
-| `w_bit` | 4 | 4-bit weights |
-| `q_group_size` | 128 | Quantization group size |
-| `zero_point` | True | Asymmetric quantization (better for activations) |
-| `version` | "GEMM" | Kernel optimization |
+| `scheme` | `W4A16_ASYM` | 4-bit asymmetric weights |
+| `duo_scaling` | `"both"` | AWQ smoothing scale search |
+| `ignore` | `lm_head`, `re:.*linear_attn.*` | Keep head + Qwen3.5 GatedDeltaNet projections unquantized |
+| `max_seq_length` | 512 | Calibration sequence length |
 
 ## FP8 (Float8) — Modal H100 Only
 
@@ -164,14 +170,14 @@ python -m eval.run --model ./fp8_model --data-dir data --output-dir eval_fp8
 
 ### W&B Artifacts
 ```python
-artifact = wandb.Artifact("qwen2.5-7b-gxp-gptq-4bit", type="model")
+artifact = wandb.Artifact("qwen3.5-4b-regulon-gptq-4bit", type="model")
 artifact.add_dir("./quantized/gptq-4bit")
 wandb.log_artifact(artifact)
 ```
 
 ### Modal Volume
 ```python
-volumes={"/results": modal.Volume.from_name("gxp-results")}
+volumes={"/results": modal.Volume.from_name("regulon-results")}
 # Model saved to /results/fp8/
 ```
 
@@ -181,7 +187,7 @@ from huggingface_hub import HfApi
 api = HfApi(token=os.environ["HF_TOKEN"])
 api.upload_folder(
     folder_path="./quantized/gptq-4bit",
-    repo_id="your-username/qwen2.5-7b-gxp-gptq",
+    repo_id="your-username/qwen3.5-4b-regulon-gptq",
 )
 ```
 
@@ -235,7 +241,7 @@ runtime = sgl.Runtime(
 | Issue | Fix |
 |-------|-----|
 | GPTQ: "No GPU found" | Ensure `device_map="auto"` and CUDA visible |
-| AWQ: "Kernel not found" | Install `autoawq` with `--no-build-isolation` or use pre-built wheel |
+| AWQ: GatedDeltaNet `forward() missing 'hidden_states'` | Exclude mapping 1 as in the notebook (keep mappings 0, 2, 3) and ignore `re:.*linear_attn.*` |
 | FP8: "Unsupported dtype" | Requires H100 (compute capability 9.0+) |
-| Perplexity spike | Increase calibration samples to 512, try `desc_act=True` for GPTQ |
+| Perplexity spike | Increase calibration samples, try `desc_act=True` for GPTQ |
 | Serving fails | Verify `quantization` arg matches model format in vLLM/SGLang |

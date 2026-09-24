@@ -83,7 +83,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="GxP-LLM API",
+    title="Regulon API",
     version="1.0.0",
     lifespan=lifespan,
     dependencies=[Depends(verify_api_key)],

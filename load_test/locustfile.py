@@ -1,4 +1,4 @@
-"""Locust load test for GxP-LLM API."""
+"""Locust load test for Regulon API."""
 from locust import HttpUser, task, between, events
 import json
 import random
@@ -19,7 +19,7 @@ PROMPTS = [
 ]
 
 
-class GxPLLMUser(HttpUser):
+class RegulonUser(HttpUser):
     wait_time = between(0.5, 2)  # Think time between requests
     api_key = "demo-key-123"
 
@@ -30,7 +30,7 @@ class GxPLLMUser(HttpUser):
     def chat_completion(self):
         prompt = random.choice(PROMPTS)
         payload = {
-            "model": "gxp-llm",
+            "model": "regulon",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 256,
             "temperature": 0.1,
@@ -46,7 +46,7 @@ class GxPLLMUser(HttpUser):
     def chat_completion_stream(self):
         prompt = random.choice(PROMPTS)
         payload = {
-            "model": "gxp-llm",
+            "model": "regulon",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 256,
             "temperature": 0.1,

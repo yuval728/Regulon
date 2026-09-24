@@ -1,13 +1,13 @@
 # Load Testing Documentation
 
 ## Overview
-The `load_test/locustfile.py` implements **realistic load testing** for the GxP-LLM API using Locust, with a production-style ramp profile and GxP-domain prompts.
+The `load_test/locustfile.py` implements **realistic load testing** for the Regulon API using Locust, with a production-style ramp profile and GxP-domain prompts.
 
 ## Locustfile Structure
 
-### User Class (`GxPLLMUser`)
+### User Class (`RegulonUser`)
 ```python
-class GxPLLMUser(HttpUser):
+class RegulonUser(HttpUser):
     wait_time = between(0.5, 2)  # Think time between requests
     api_key = "demo-key-123"
 
@@ -257,7 +257,7 @@ assert df['Failure Count'].sum() / df['Request Count'].sum() < 0.01
 5. **Resource Utilization** — GPU/CPU/Memory during peak load
 
 ### Resume Bullet Template
-> "Benchmarked vLLM vs SGLang on GxP-finetuned Qwen2.5-7B at 1-100 concurrent users: vLLM achieved 16.8k tok/s at 100 concurrency (TTFT p99=1.2s), SGLang achieved 14.2k tok/s with structured output support; selected vLLM for production deployment."
+> "Benchmarked vLLM vs SGLang on Regulon-finetuned Qwen3.5-4B at 1-100 concurrent users: vLLM achieved 16.8k tok/s at 100 concurrency (TTFT p99=1.2s), SGLang achieved 14.2k tok/s with structured output support; selected vLLM for production deployment."
 
 ## Troubleshooting
 

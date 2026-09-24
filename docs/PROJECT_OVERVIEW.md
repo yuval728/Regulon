@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-**GxP-LLM** is an end-to-end LLM fine-tuning project demonstrating production-grade ML engineering skills:
+**Regulon** is an end-to-end LLM fine-tuning project demonstrating production-grade ML engineering skills:
 
 | Phase | Technology | Key Achievement |
 |-------|------------|-----------------|
@@ -20,7 +20,7 @@
 
 ### 1. GitHub Repository
 ```
-https://github.com/your-username/GxP-LLM
+https://github.com/your-username/Regulon
 ```
 **Contents:**
 - Clean, documented code with type hints
@@ -30,7 +30,7 @@ https://github.com/your-username/GxP-LLM
 
 ### 2. Live Demo Endpoint
 ```
-https://your-name--gxp-llm-demo-vllm-app.modal.run/v1/chat/completions
+https://your-name--regulon-demo-vllm-app.modal.run/v1/chat/completions
 ```
 - OpenAI-compatible API
 - Streaming responses
@@ -41,7 +41,7 @@ https://your-name--gxp-llm-demo-vllm-app.modal.run/v1/chat/completions
 **Target**: Medium / personal site / Dev.to
 **Structure:**
 ```
-Title: "Fine-Tuning Qwen2.5-7B for GxP Compliance: From Synthetic Data to Production Serving"
+Title: "Fine-Tuning Qwen3.5-4B for GxP Compliance: From Synthetic Data to Production Serving"
 
 1. Hook: "Reduced inference latency 40% via AWQ quantization while maintaining 95%+ task accuracy"
 2. Problem: Why GxP needs specialized LLMs (ALCOA+, data integrity)
@@ -55,7 +55,7 @@ Title: "Fine-Tuning Qwen2.5-7B for GxP Compliance: From Synthetic Data to Produc
 
 ### 4. LinkedIn Post
 ```
-🚀 Just shipped GxP-LLM: a fine-tuned Qwen2.5-7B for pharmaceutical compliance
+🚀 Just shipped Regulon: a fine-tuned Qwen3.5-4B for pharmaceutical compliance
 
 Key results:
 ✅ QLoRA (r=16) on Kaggle T4: 300 steps in 4 hrs
@@ -64,7 +64,7 @@ Key results:
 ✅ Full eval harness: exact match, ROUGE, LLM judge, adversarial robustness
 ✅ Deployed on Modal with autoscaling + Prometheus/Grafana
 
-Repo: github.com/your-username/GxP-LLM
+Repo: github.com/your-username/Regulon
 Demo: [live endpoint]
 Blog: [link]
 
@@ -85,13 +85,13 @@ Blog: [link]
 ## Interview Talking Points
 
 ### "Walk me through your fine-tuning project"
-> **2-minute version**: "I fine-tuned Qwen2.5-7B for GxP pharmaceutical compliance using QLoRA with Unsloth+TRL on Kaggle T4s. Built a full eval harness first — exact match, ROUGE, LLM judge, adversarial testing — then ran it on base, fine-tuned, GPTQ, AWQ, and FP8 models for direct comparison. Benchmarked vLLM vs SGLang at 1-100 concurrency. Deployed on Modal with autoscaling and Prometheus/Grafana. Key result: AWQ 4-bit gave 40% latency reduction with <1% quality drop."
+> **2-minute version**: "I fine-tuned Qwen3.5-4B for GxP pharmaceutical compliance using QLoRA with Unsloth+TRL on Kaggle T4s. Built a full eval harness first — exact match, ROUGE, LLM judge, adversarial testing — then ran it on base, fine-tuned, GPTQ, AWQ, and FP8 models for direct comparison. Benchmarked vLLM vs SGLang at 1-100 concurrency. Deployed on Modal with autoscaling and Prometheus/Grafana. Key result: AWQ 4-bit gave 40% latency reduction with <1% quality drop."
 
 ### "Why Unsloth?"
 > "2x training speed and 60% less VRAM vs vanilla HF on same hardware. On Kaggle T4 that meant 4-hour runs instead of 8, and I could fit batch size 2 with grad accum 4 instead of 1. Also patches TRL cleanly — `FastLanguageModel` for loading, `SFTTrainer` for the loop."
 
 ### "How did you evaluate?"
-> "Built the eval harness *before* training. Three pillars: (1) Task metrics — exact match on structured sections, ROUGE-L, BLEU; (2) LLM judge — GPT-4o-mini with explicit 4-criterion rubric (accuracy, completeness, compliance, tone); (3) Adversarial — refusal rate, false compliance rate, helpful redirect rate on held-out adversarial set. Ran same harness on every model variant."
+> "Built the eval harness *before* training. Three pillars: (1) Task metrics — exact match on structured sections, ROUGE-L, BLEU; (2) LLM judge — `gemini/gemini-3.5-flash-lite` with explicit 4-criterion rubric (accuracy, completeness, compliance, tone); (3) Adversarial — refusal rate, false compliance rate, helpful redirect rate on held-out adversarial set. Ran same harness on every model variant."
 
 ### "GPTQ vs AWQ vs FP8 — which won?"
 > "AWQ slightly better task quality than GPTQ at same 4-bit. FP8 on H100 near-FP16 quality with 2x memory bandwidth but needs Hopper. For production on T4/A10G, AWQ is the sweet spot. All three within 1% of FP16 on our eval harness."
