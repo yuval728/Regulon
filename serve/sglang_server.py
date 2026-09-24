@@ -49,7 +49,7 @@ class SGLangEngine:
         temperature: float = 0.7,
         top_p: float = 0.95,
         max_tokens: int = 512,
-        stop: Optional[List[str]] = None,
+        stop: list[str] | None = None,
     ) -> GenerationResponse:
         # Use SGLang's native chat template
         prompt = self._format_messages(messages)
@@ -79,7 +79,7 @@ class SGLangEngine:
         temperature: float = 0.7,
         top_p: float = 0.95,
         max_tokens: int = 512,
-        stop: Optional[List[str]] = None,
+        stop: list[str] | None = None,
     ) -> AsyncGenerator[StreamChunk, None]:
         prompt = self._format_messages(messages)
 
@@ -99,7 +99,7 @@ class SGLangEngine:
 
         yield StreamChunk(text="", finish_reason="stop")
 
-    def _format_messages(self, messages: List[dict]) -> str:
+    def _format_messages(self, messages: list[dict]) -> str:
         """Format messages using SGLang's expected format."""
         from transformers import AutoTokenizer
         tokenizer = AutoTokenizer.from_pretrained(self.model_path, trust_remote_code=True)

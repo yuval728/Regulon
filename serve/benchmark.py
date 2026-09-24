@@ -67,7 +67,7 @@ async def benchmark_engine(
                         try:
                             chunk = json.loads(data)
                             delta = chunk["choices"][0].get("delta", {})
-                            if "content" in delta and delta["content"]:
+                            if delta.get("content"):
                                 now = time.time()
                                 if ttft is None:
                                     ttft = now - request_start
