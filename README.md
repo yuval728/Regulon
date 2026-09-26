@@ -10,6 +10,8 @@ A production-grade LLM fine-tuning project covering the full lifecycle: syntheti
 
 ## 📊 Results Summary
 
+*Run `eval/run.py` to populate these numbers.*
+
 | Stage | Metric | Value |
 |-------|--------|-------|
 | **Baseline (candidate model)** | Exact Match | — |
@@ -24,7 +26,7 @@ A production-grade LLM fine-tuning project covering the full lifecycle: syntheti
 | **vLLM vs SGLang** | TTFT p50 @ 10 concurrent | — / — |
 | | Throughput @ 100 concurrent | — / — |
 
-*Run `eval/run.py` to populate these numbers.*
+
 
 ---
 
@@ -217,16 +219,6 @@ The **evaluation harness is built before fine-tuning** and re-run on every model
 | **Total** | **~16-20** |
 
 Well within free tier limits.
-
----
-
-## 📝 Portfolio Artifacts
-
-This project produces:
-1. **Technical blog post** with comparison tables and benchmark charts
-2. **Live demo endpoint** on Lightning AI / Modal
-3. **GitHub repo** with full reproduction instructions
-4. **Resume bullets** with quantified results (e.g., "X% latency reduction via AWQ quantization", "benchmarked vLLM vs SGLang at Y concurrency")
 
 ---
 
